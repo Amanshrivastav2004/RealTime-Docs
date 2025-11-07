@@ -2,13 +2,20 @@
 import Navbar from "../components/Navbar"
 import { Body } from "../components/Body"
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
+import { useStore } from '../store/zustand';
 
 
 const Home=()=>{
 
  const navigate = useNavigate()
  const token = sessionStorage.getItem("token") as string
+ const getDocuments = useStore((state) => state.getDocuments)
+
+useLayoutEffect(()=>{
+             
+             getDocuments()
+         }, [])
 
  useEffect(()=>{
      if(!token){

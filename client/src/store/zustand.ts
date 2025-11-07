@@ -19,7 +19,11 @@ interface Documentt{
 }
 
 interface getdocresponse{
-    allDocuments:Document[]
+    allDocuments: {
+        ownedDocuments: Document[]
+        sharedDocuments: Document[]
+        Documents: Document[]
+    }
 }
 
 interface StoreState{
@@ -33,9 +37,11 @@ interface StoreState{
     document:Documentt
     setDocument:(data:{title?:string , content?:string})=>void
     updateDocs:(docId:number , document:{title?:string , content?:string})=> Promise<void>;
+    filterOption:string
+    setfilterOption:(option:string)=> void
 }
 
-export const useStore = create<StoreState>((set)=>({
+export const useStore = create<StoreState>((set , get)=>({
     documents:[] , 
     getDocuments: async () => {
         try {
@@ -45,9 +51,17 @@ export const useStore = create<StoreState>((set)=>({
                 authorization: sessionStorage.getItem('token')
                 }
             })
-            set({documents: response.data.allDocuments})
-            console.log("Documents fetched:", response.data.allDocuments);
-            
+            const filterOption = get().filterOption;
+            if (filterOption === 'me') {
+                const filteredDocs = response.data.allDocuments.ownedDocuments
+                set({documents: filteredDocs});
+            } else if (filterOption === 'notMe') {
+                const filteredDocs = response.data.allDocuments.sharedDocuments
+                set({documents: filteredDocs});
+            } else {    
+            set({documents: response.data.allDocuments.Documents})
+            console.log("Documents fetched:", response.data.allDocuments.Documents);
+            }
         } catch (error) {
             console.error("Error fetching:" , error)
         }
@@ -75,5 +89,7 @@ export const useStore = create<StoreState>((set)=>({
             }
         })
        console.log(res.data.message)
-    }
+    },
+    filterOption:'me',
+    setfilterOption:(option:string)=> set({filterOption:option})
 }))

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import image from '../assets/logo.png'
-import React, {  useEffect, useState } from 'react';
+import React, {  useEffect, useLayoutEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/zustand';
 
@@ -19,13 +19,7 @@ const Documentcard = ()=>{
     
     const documents = useStore((state)=> state.documents) || []
 
-    useEffect(()=>{
-        
-        getDocuments()
-    }, [])
-
     
-
     const handlePosition = (e:React.MouseEvent )=>{
         
             const rect = e.currentTarget.getBoundingClientRect()

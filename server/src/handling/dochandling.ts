@@ -63,12 +63,11 @@ export const allDocuments = async (req:customRequest , res:Response , next:NextF
       // Collect owned + shared
     const ownedDocuments = userWithDocs?.documents || [];
     const sharedDocuments = userWithDocs?.documentuser.map(d => d.document) || [];
+    const Documents = [...ownedDocuments, ...sharedDocuments];
 
     // Merge both
-    const allDocuments = [...ownedDocuments, ...sharedDocuments];
-
-    // (Optional) Sort by latest updated
-    allDocuments.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    const allDocuments = { ownedDocuments , sharedDocuments , Documents}
+    
 
    // Send to frontend
    return res.status(200).json({allDocuments})
