@@ -1,8 +1,9 @@
 import axios from 'axios';
 import image from '../assets/logo.png'
-import React, {  useEffect, useLayoutEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/zustand';
+import ShowShare from './ShowShare';
 
 
 interface delDocresonse{
@@ -13,11 +14,30 @@ const Documentcard = ()=>{
 
     const [position , setPosition] = useState({top:0 , left:0})
     const [openMenuDocId, setOpenMenuDocId] = useState<number | null>(null);
+    const [shareDocId, setShareDocId] = useState<number | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate()
 
     const getDocuments = useStore(state => state.getDocuments)
     
     const documents = useStore((state)=> state.documents) || []
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuDocId(null);
+            }
+        };
+
+        if (openMenuDocId !== null) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openMenuDocId]);
 
     
     const handlePosition = (e:React.MouseEvent )=>{
@@ -36,6 +56,29 @@ const Documentcard = ()=>{
         return tempdiv.innerText
     }
 
+    function extractText(content: string): string {
+        if (!content) return '';
+        
+        // Check if it's Quill Delta JSON format
+        if (content.trim().startsWith('{')) {
+            try {
+                const delta = JSON.parse(content);
+                if (delta.ops && Array.isArray(delta.ops)) {
+                    // Extract text from Quill Delta ops
+                    return delta.ops
+                        .map((op: any) => typeof op.insert === 'string' ? op.insert : '')
+                        .join('')
+                        .trim();
+                }
+            } catch (e) {
+                // If parsing fails, treat as HTML
+            }
+        }
+        
+        // Otherwise treat as HTML
+        return stripHtml(content);
+    }
+
     return (
         <div className="flex flex-wrap gap-8">
             {documents.map(doc=>(
@@ -44,7 +87,7 @@ const Documentcard = ()=>{
             navigate(`/document/${doc.id}`) 
             }}>
                 <div className="grow bg-gray-200 border-b border-b-gray-300">
-                     <p className='text-[3px] overflow-auto'>{stripHtml(doc.content || "" )}</p>
+                     <p className='text-[3px] overflow-auto'>{extractText(doc.content || "" )}</p>
                 </div>
                 <div className="flex flex-col  h-[60px] gap-1 ">
                     <div className='text-sm m-2 h-[10px]'>{doc.title || "Untitled Document"}</div>
@@ -60,7 +103,7 @@ const Documentcard = ()=>{
                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
                         </svg>
                         {openMenuDocId === doc.id &&(
-                         <div className='absolute bg-white' style={{top:position.top , left:position.left}}>
+                         <div ref={menuRef} className='absolute bg-white shadow-lg border border-gray-200 rounded-md' style={{top:position.top , left:position.left}}>
                            <div className='border-b border-b-gray-300 hover:bg-gray-200 p-1 text-sm' onClick={
                             async (e) => {
                                 try {
@@ -78,7 +121,11 @@ const Documentcard = ()=>{
                                 }
                             }
                            } >Delete</div>
-                           <div className='hover:bg-gray-200 p-1 text-sm'>Share</div> 
+                                                     <div className='hover:bg-gray-200 p-1 text-sm' onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setOpenMenuDocId(null);
+                                                        setShareDocId(doc.id);
+                                                     }}>Share</div> 
                          </div>
                           )
                         }
@@ -86,7 +133,14 @@ const Documentcard = ()=>{
                 </div>
             </div>
             ))}
-            
+
+            {shareDocId && (
+                <ShowShare
+                    isOpen={Boolean(shareDocId)}
+                    onClose={() => setShareDocId(null)}
+                    docId={shareDocId}
+                />
+            )}
         </div>
     )
 

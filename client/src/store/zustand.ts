@@ -16,6 +16,7 @@ interface Response{
 interface Documentt{
     title:string
     content:string
+    permission?:string
 }
 
 interface getdocresponse{
@@ -35,7 +36,7 @@ interface StoreState{
     // content:string
     // setContent:(contentt:string)=>void
     document:Documentt
-    setDocument:(data:{title?:string , content?:string})=>void
+    setDocument:(data:{title?:string , content?:string, permission?:string})=>void
     updateDocs:(docId:number , document:{title?:string , content?:string})=> Promise<void>;
     filterOption:string
     setfilterOption:(option:string)=> void
@@ -73,7 +74,8 @@ export const useStore = create<StoreState>((set , get)=>({
     // setContent:(contentt)=>set({content:contentt}),
     document:{
         title:"",
-        content:""
+        content:"",
+        permission:"EDIT"
     },
     setDocument:(data)=>set((state)=>({document: {
       ...state.document,

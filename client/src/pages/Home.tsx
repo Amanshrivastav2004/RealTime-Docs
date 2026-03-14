@@ -9,20 +9,17 @@ import { useStore } from '../store/zustand';
 const Home=()=>{
 
  const navigate = useNavigate()
- const token = sessionStorage.getItem("token") as string
+ const token = sessionStorage.getItem("token")
  const getDocuments = useStore((state) => state.getDocuments)
 
-useLayoutEffect(()=>{
-             
-             getDocuments()
-         }, [])
-
- useEffect(()=>{
+ useLayoutEffect(()=>{
      if(!token){
-    alert("Please login first")
-    navigate('/Signin')
- }
- },[])
+         alert("Please login first")
+         navigate('/Signin')
+     } else {
+         getDocuments()
+     }
+ }, [])
 
 
     return(

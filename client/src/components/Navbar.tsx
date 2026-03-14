@@ -27,11 +27,29 @@ const Navbar=()=>{
     const token = sessionStorage.getItem('token')
     const [isOpen , setisopen] = useState(false)
     const [position , setPosition] = useState({top:0 , left:0})
+    const logoutRef = useRef<HTMLDivElement>(null)
     const debounce = useRef<number | null>(null)
     const { setDocuments } = useStore()
     const getDocuments = useStore(state => state.getDocuments)
 
     const navigate = useNavigate()
+
+    // Close logout menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (logoutRef.current && !logoutRef.current.contains(event.target as Node)) {
+                setisopen(false);
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
 
    useEffect(()=>{
     if(!token){
@@ -104,7 +122,7 @@ const Navbar=()=>{
                 <button className="h-8 w-8 rounded-full bg-blue-400 text-white text-2xl" onClick={(e)=>{handlePosition(e)}}>{name[0]}</button>
             </div>
             {isOpen && (
-                <div className='bg-white absolute p-2 hover:bg-gray-200 rounded-md' style={{top:position.top , left:position.left - 30}}
+                <div ref={logoutRef} className='bg-white absolute p-2 hover:bg-gray-200 rounded-md shadow-lg border border-gray-200' style={{top:position.top , left:position.left - 30}}
                 onClick={logoutButton}>Logout</div>
             )}
         </div>

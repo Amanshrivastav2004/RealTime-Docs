@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import bcrypt from 'bcrypt'
 import { PrismaClient } from "@prisma/client"
-import { sendMail } from "../sendmail"
+import { SendMail } from "../sendmail"
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { resetpasswordschema, resetschema, userValidator } from "../validators/user.Validate"
 import { customRequest } from "../interfaces/interfaces"
@@ -26,8 +26,8 @@ export const signup = async (req:Request , res:Response ) => {
         const verificationtoken = jwt.sign({email} , process.env.VERIFY_KEY as string , {expiresIn:"1h"})
         console.log("user created but mail not send")
 
-        await sendMail({
-            from: process.env.EMAIL_USER,
+        await SendMail({
+            from: process.env.EMAIL_USER as string,
             to: email,
             subject: 'Welcome to RealTimeDocs',
             text: `Please click on the link to verify ${process.env.LINK}/verifyemail/${verificationtoken}`
@@ -132,8 +132,8 @@ export const validateEmail= async(req:Request , res:Response)=>{
 
     const resetToken = jwt.sign({email} , process.env.RESETPASSWORD_KEY as string , {expiresIn:"1h"})
 
-    await sendMail({
-            from: process.env.EMAIL_USER,
+    await SendMail({
+            from: process.env.EMAIL_USER as string,
             to: email,
             subject: 'Welcome to RealTimeDocs',
             text: `Please click on the link to reset password ${process.env.LINK}/reset-password/${resetToken}`
@@ -207,7 +207,7 @@ export const getUser=async(req:customRequest , res:Response)=>{
         const user = await prisma.user.findFirst({
             where:{id:userId}
         })
-        return res.status(200).json({name:user?.name})
+        return res.status(200).json({name:user?.name, userId: user?.id})
     } catch (error) {
         console.error(error)
         return res.status(400).json({error:"Unable to get user"})
