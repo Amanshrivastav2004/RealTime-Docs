@@ -19,7 +19,12 @@ interface PendingApproval {
   messageId: string;
 }
 
-const DocumentChat = () => {
+interface DocumentChatProps {
+  onClose?: () => void;
+}
+
+const DocumentChat = ({ onClose }: DocumentChatProps) => {
+
   const { docId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -288,9 +293,22 @@ const DocumentChat = () => {
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-200">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800">Document Assistant</h2>
-        <p className="text-sm text-gray-500">Ask questions about this document</p>
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">Document Assistant</h2>
+          <p className="text-sm text-gray-500">Ask questions about this document</p>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-200 focus:outline-none transition-colors"
+            title="Close Assistant"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Messages */}

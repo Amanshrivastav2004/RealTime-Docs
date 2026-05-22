@@ -10,6 +10,20 @@ interface delDocresonse{
     message:string
 }
 
+const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (e) {
+        return '';
+    }
+};
+
 const Documentcard = ()=>{
 
     const [position , setPosition] = useState({top:0 , left:0})
@@ -93,7 +107,7 @@ const Documentcard = ()=>{
                     <div className='text-sm m-2 h-[10px]'>{doc.title || "Untitled Document"}</div>
                     <div className='flex justify-between gap-2 '>
                         <img src={image} className="h-6 m-1" />
-                        <div className='text-sm m-1'>5-6-2024</div>
+                        <div className='text-sm m-1'>{formatDate(doc.updatedAt)}</div>
                         <svg xmlns="http://www.w3.org/2000/svg"  fill="currentColor" className="bi bi-three-dots-vertical h-7 w-4 text-gray-500" viewBox="0 0 16 16"
                              onClick={ (e)=>{
                                 e.stopPropagation();

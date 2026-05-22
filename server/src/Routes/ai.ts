@@ -83,7 +83,7 @@ airouter.post("/ask", async (req, res) => {
       
       if (lastMessage) {
         // Check message type - handle both LangChain objects and plain objects
-        const messageType = typeof lastMessage._getType === 'function' 
+                                      const messageType = typeof lastMessage._getType === 'function' 
           ? lastMessage._getType() 
           : lastMessage.role || (lastMessage.constructor?.name === 'HumanMessage' ? 'human' : 'ai');
         

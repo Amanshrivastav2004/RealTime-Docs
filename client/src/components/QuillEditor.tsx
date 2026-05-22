@@ -1,23 +1,12 @@
 // src/components/QuillEditor.tsx
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import Quill, { Delta } from 'quill'
 import 'quill/dist/quill.snow.css'; 
 import { useStore } from '../store/zustand';
 import { useParams } from 'react-router-dom';
-import axios from 'axios'
 import { io, Socket } from 'socket.io-client'
 
-interface Document{
-    id:number
-    title?:string
-    content?:string
-    updatedAt:string
-    userId:number
-}
 
-interface getonedoc{
-    document:Document
-}
 
 
 const toolbarOptions = [
@@ -57,7 +46,6 @@ const QuillEditor = () => {
 
   const content = useStore((state) => state.document.content)
   const permission = useStore((state) => state.document.permission)
-  const setContent = useStore((state) => state.setDocument)
 
   const isReadOnly = permission === 'VIEW'
 
@@ -95,7 +83,7 @@ const QuillEditor = () => {
 
     socketServer.emit("join-document", docId)
 
-    const handleChange=(delta:Delta ,oldDelta:Delta ,source:string)=>{
+    const handleChange=(delta:Delta ,_oldDelta:Delta ,source:string)=>{
       if(source !== "user") return
       
       // Don't send changes if in read-only mode
@@ -186,14 +174,14 @@ const QuillEditor = () => {
     },[content, docId])
   
   return (
-    <div>
+    <div className="flex flex-col h-full w-full overflow-hidden">
       {isReadOnly && (
-        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-2">
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-3 mb-2 flex-shrink-0">
           <p className="font-bold">View Only</p>
           <p className="text-sm">You have view-only access to this document.</p>
         </div>
       )}
-      <div ref={divRef}  className='min-h-screen'></div>
+      <div ref={divRef} className="flex-1 min-h-0"></div>
     </div>
   )
 }

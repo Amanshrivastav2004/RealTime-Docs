@@ -2,7 +2,7 @@
 import Navbar from "../components/Navbar"
 import { Body } from "../components/Body"
 import { useNavigate } from "react-router-dom";
-import { useEffect, useLayoutEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useStore } from '../store/zustand';
 
 

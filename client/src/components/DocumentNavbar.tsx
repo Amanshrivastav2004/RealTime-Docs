@@ -126,49 +126,54 @@ const dataTobackend = async(title:string) => {
   }
 
 
-    return(
-        <div className="w-screen h-[50px] flex justify-between items-center px-7 py-10 bg-gray-200">
-            <div className='flex items-center'>
-                <img src={image} className="h-10 w-8 m-4" />
-                <div className='grow flex flex-col px-7 gap-3'>
+    return (
+        <div className="w-full min-h-[70px] md:h-[80px] flex justify-between items-center px-4 md:px-7 py-2 bg-white border-b border-gray-200">
+            <div className='flex items-center flex-1 min-w-0'>
+                <img src={image} className="h-8 w-6 md:h-10 md:w-8 m-2 md:m-4 flex-shrink-0" alt="Logo" />
+                <div className='flex-1 flex flex-col px-2 md:px-4 min-w-0 gap-1'>
                     <input 
-                      className={`h-[40px] font-bold p-2 ${!canEdit ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      className={`h-[32px] md:h-[38px] font-bold px-2 text-sm md:text-lg border border-transparent hover:border-gray-300 focus:border-blue-500 rounded bg-transparent focus:bg-white outline-none transition-all ${!canEdit ? 'cursor-not-allowed opacity-75' : ''}`}
                       value={title} 
                       placeholder="Untitled Document" 
                       onChange={(e)=>{canEdit && dataTobackend(e.target.value)}}
                       disabled={!canEdit}
                       title={!canEdit ? 'You need edit permission to change the title' : ''}
                     />
-                    <div className='flex gap-5'>
-                        <div className='text-xs'>File</div>
-                        <div className='text-xs'>Edit</div>
-                        <div className='text-xs'>View</div>
-                        <div className='text-xs'>Insert</div>
-                        <div className='text-xs'>Format</div>
-                        <div className='text-xs'>Tools</div>
-                        <div className='text-xs'>Add-ons</div>
-                        <div className='text-xs'>Help</div>
+                    <div className='flex gap-3 md:gap-5 overflow-x-auto scrollbar-none whitespace-nowrap text-gray-500 pb-0.5 text-xs md:text-sm select-none'>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>File</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>Edit</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>View</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>Insert</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>Format</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>Tools</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>Add-ons</div>
+                        <div className='cursor-pointer hover:bg-gray-100 hover:text-gray-800 px-1.5 py-0.5 rounded transition-colors'>Help</div>
                     </div>
                 </div>
             </div>
-            <div className='flex gap-3 items-center'>
-                {/* Active Users */}
-                <div className='flex -space-x-2'>
+            <div className='flex gap-2 md:gap-3 items-center flex-shrink-0 ml-2'>
+                {/* Active Users (hidden on small devices to prioritize title and controls) */}
+                <div className='hidden sm:flex -space-x-1.5 mr-1 md:mr-2'>
                   {activeUsers.map((user) => (
                     <div
                       key={user.socketId}
-                      className={`h-8 w-8 rounded-full ${getColorFromName(user.name)} text-white text-sm flex items-center justify-center border-2 border-white font-semibold`}
+                      className={`h-7 w-7 md:h-8 md:w-8 rounded-full ${getColorFromName(user.name)} text-white text-xs md:text-sm flex items-center justify-center border-2 border-white font-semibold transition-all`}
                       title={user.name}
                     >
                       {getInitials(user.name)}
                     </div>
                   ))}
                 </div>
-                <button className='bg-blue-600 text-white text-xl rounded-full w-20 p-2' onClick={()=>setisopen(true)}>Share</button>
+                <button 
+                  className='bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-medium rounded-full px-4 py-1.5 md:px-5 md:py-2 shadow-sm hover:shadow-md transition-all cursor-pointer'
+                  onClick={()=>setisopen(true)}
+                >
+                  Share
+                </button>
                 {/* Current User Avatar */}
                 {currentUser && (
                   <div 
-                    className={`h-10 w-10 rounded-full ${getColorFromName(currentUser.name)} text-white text-2xl flex items-center justify-center font-semibold`}
+                    className={`h-8 w-8 md:h-10 md:w-10 rounded-full ${getColorFromName(currentUser.name)} text-white text-base md:text-lg flex items-center justify-center font-semibold border border-gray-100 shadow-sm`}
                     title={currentUser.name}
                   >
                     {getInitials(currentUser.name)}
