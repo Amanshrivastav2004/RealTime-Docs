@@ -1,17 +1,36 @@
 
 
-import sgMail, { MailDataRequired } from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 
-// Only set API key if it exists to avoid warnings
-if (process.env.SENDGRID_API_KEY) {
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+let transporter: nodemailer.Transporter | null = null;
+
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  }
+  return transporter;
+};
+
+export interface MailData {
+  from: string;
+  to: string;
+  subject: string;
+  html?: string;
+  text?: string;
 }
 
-export const SendMail = async (mailData: MailDataRequired) => {
-    try {
-        const response = await sgMail.send(mailData);
-        return response;
-    } catch (error) {
-        throw error;
-    }
+export const SendMail = async (mailData: MailData) => {
+  try {
+    const activeTransporter = getTransporter();
+    const response = await activeTransporter.sendMail(mailData);
+    return response;
+  } catch (error) {
+    throw error;
+  }
 };

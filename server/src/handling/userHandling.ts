@@ -11,31 +11,51 @@ const prisma = new PrismaClient()
 export const signup = async (req:Request , res:Response ) => {
     const {name , email , password} = req.body
 
-    const hashedpassword = await bcrypt.hash( password , 10)
+    const hashedPassword = await bcrypt.hash( password , 10)
 
     try{
-        await prisma.user.create({
+        const user = await prisma.user.create({
             data:{
                 name,
                 email,
-                password: hashedpassword
+                password: hashedPassword
             }
         })
         
-        
-        const verificationtoken = jwt.sign({email} , process.env.VERIFY_KEY as string , {expiresIn:"1h"})
-        console.log("user created but mail not send")
+        const verificationToken = jwt.sign({email} , process.env.VERIFY_KEY as string , {expiresIn:"1h"})
+        console.log("user created, sending mail...")
 
         await SendMail({
-            from: process.env.EMAIL_USER as string,
+            from: `RealTimeDocs <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: 'Welcome to RealTimeDocs',
-            text: `Please click on the link to verify ${process.env.LINK}/verifyemail/${verificationtoken}`
+            subject: "Welcome to RealTimeDocs - Verify Your Email",
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #333;">Welcome to RealTimeDocs, ${user.name}! 👋</h2>
+                    <p style="color: #666; font-size: 16px;">
+                        Thank you for signing up. Please verify your email address to get started.
+                    </p>
+                    <div style="margin: 30px 0;">
+                        <a href="${process.env.LINK}/verifyemail/${verificationToken}" 
+                           style="background-color: #4F46E5; color: white; padding: 12px 30px; 
+                                  text-decoration: none; border-radius: 5px; display: inline-block;">
+                            Verify Email
+                        </a>
+                    </div>
+                    <p style="color: #999; font-size: 14px;">
+                        This link will expire in 1 hour.
+                    </p>
+                    <p style="color: #999; font-size: 12px;">
+                        If you didn't sign up for RealTimeDocs, please ignore this email.
+                    </p>
+                </div>
+            `,
+            text: `Hi ${user.name}, Welcome to RealTimeDocs! Please verify your email by clicking on this link: ${process.env.LINK}/verifyemail/${verificationToken}`,
         })
         return res.status(201).json({message: "User created successfully"})
     }catch(error){
         console.error(error)
-        return res.status(400).json({error: "User not created"})
+        return res.status(400).json({error: "Unable to create user"})
     }
 
 }
