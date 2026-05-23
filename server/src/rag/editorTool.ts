@@ -152,12 +152,11 @@ User Instruction:
 
 You MUST return ONLY valid JSON in one of these formats:
 
-FORMAT 1: Apply formatting to selected text (when selection.length > 0):
+FORMAT 1: Apply formatting (bold, italic, color, alignment, etc.) to selected text (when selection.length > 0):
 {
   "ops": [
     {"retain": ${activeSelection.index}},
-    {"delete": ${activeSelection.length}},
-    {"insert": "selected text content", "attributes": {"bold": true}}
+    {"retain": ${activeSelection.length}, "attributes": {"bold": true}}
   ]
 }
 
@@ -179,12 +178,11 @@ FORMAT 3: For bullet/numbered lists from selected text:
 }
 
 CRITICAL RULES:
-- If selection.length > 0: You're formatting the SELECTED text. Extract it, apply formatting attributes
+- If selection.length > 0: You're formatting the SELECTED text. ALWAYS use two retain operations: one to skip to the selection index, and another to format the selection length with your attributes. Do NOT delete or re-insert the text!
 - If selection.length = 0: You're INSERTING new content. Generate new text to insert
 - For colors: red=#ff0000, blue=#0000ff, green=#00ff00, yellow=#ffff00, orange=#ffa500, purple=#800080
 - For lists: Split sentences with \\n between each point
 - NEVER use {"delete": 0} or {"insert": ""} - these do nothing!
-- When formatting, ALWAYS include the actual text content in the "insert" operation
 
 EXAMPLES:
 
@@ -193,8 +191,7 @@ Selected text: "Deep learning is a subset"
 {
   "ops": [
     {"retain": 0},
-    {"delete": 100},
-    {"insert": "Deep learning is a subset", "attributes": {"color": "#0000ff"}}
+    {"retain": 100, "attributes": {"color": "#0000ff"}}
   ]
 }
 
@@ -203,8 +200,7 @@ Selected text: "machine learning"
 {
   "ops": [
     {"retain": 10},
-    {"delete": 50},
-    {"insert": "machine learning", "attributes": {"bold": true, "color": "#ff0000"}}
+    {"retain": 50, "attributes": {"bold": true, "color": "#ff0000"}}
   ]
 }
 
