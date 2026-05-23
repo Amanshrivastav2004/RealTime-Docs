@@ -78,7 +78,7 @@ const QuillEditor = () => {
     // Set read-only mode based on permission
     quillRef.current.enable(!isReadOnly)
 
-    const socketServer = io('http://localhost:3000')
+    const socketServer = io('import.meta.env.VITE_URL')
     socketRef.current = socketServer
 
     socketServer.emit("join-document", docId)
