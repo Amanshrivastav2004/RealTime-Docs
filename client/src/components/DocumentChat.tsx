@@ -35,6 +35,7 @@ const DocumentChat = ({ onClose }: DocumentChatProps) => {
   
   // Get document content from Zustand store
   const documentContent = useStore((state) => state.document.content);
+  const selection = useStore((state) => state.selection);
   
   // Convert Quill Delta or HTML to plain text
   const getPlainText = (content: string): string => {
@@ -113,10 +114,7 @@ const DocumentChat = ({ onClose }: DocumentChatProps) => {
           question: currentQuestion,
           threadId: threadId,
           documentText: getPlainText(documentContent), // Get actual document text
-          selection: {
-            index: 0,
-            length: 0
-          }
+          selection: selection
         }),
       });
 

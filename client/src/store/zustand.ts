@@ -40,6 +40,8 @@ interface StoreState{
     updateDocs:(docId:number , document:{title?:string , content?:string})=> Promise<void>;
     filterOption:string
     setfilterOption:(option:string)=> void
+    selection:{index:number , length:number}
+    setSelection:(sel:{index:number , length:number})=> void
 }
 
 export const useStore = create<StoreState>((set , get)=>({
@@ -93,5 +95,7 @@ export const useStore = create<StoreState>((set , get)=>({
        console.log(res.data.message)
     },
     filterOption:'me',
-    setfilterOption:(option:string)=> set({filterOption:option})
+    setfilterOption:(option:string)=> set({filterOption:option}),
+    selection:{index:0 , length:0},
+    setSelection:(sel)=> set({selection:sel})
 }))

@@ -39,6 +39,7 @@ const QuillEditor = () => {
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null)
   const socketRef = useRef<Socket | null>(null)
   const updateDocs = useStore(state=>state.updateDocs)
+  const setSelection = useStore(state=>state.setSelection)
   const isInitialLoad = useRef<boolean>(true)
 
   const {docId} = useParams()  
@@ -99,6 +100,16 @@ const QuillEditor = () => {
 // for sending text
     quillRef.current.on("text-change",handleChange)
 
+    const handleSelectionChange = (range: any) => {
+      if (range) {
+        setSelection({
+          index: range.index,
+          length: range.length
+        })
+      }
+    }
+    quillRef.current.on("selection-change", handleSelectionChange)
+
     const receiveChange=(delta:Delta)=>{
       console.log("[QuillEditor] Received delta from server:", JSON.stringify(delta));
       if (quillRef.current) {
@@ -136,6 +147,7 @@ const QuillEditor = () => {
       console.log("Cleanup");
       if (quillRef.current) {
         quillRef.current.off("text-change",handleChange)
+        quillRef.current.off("selection-change", handleSelectionChange)
       }
      socketServer.off("receive-change", receiveChange);
      socketServer.off("ai-update", handleAIUpdate);

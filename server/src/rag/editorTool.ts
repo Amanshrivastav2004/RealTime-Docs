@@ -14,18 +14,61 @@ const editorSchema = z.object({
   docId: z.string().describe("The document ID")
 });
 
+function getWordRangeAt(text: string, index: number) {
+  if (!text || index < 0 || index > text.length) {
+    return { index, length: 0 };
+  }
+
+  if (text.trim() === '') {
+    return { index: 0, length: 0 };
+  }
+
+  let start = index;
+  let end = index;
+
+  const isBoundary = (char: string) => {
+    return /\s|[\.,\/#!$%\^&\*;:{}=\-_`~()?"']/.test(char);
+  };
+
+  if (start > 0 && (start === text.length || isBoundary(text[start]))) {
+    if (!isBoundary(text[start - 1])) {
+      start--;
+      end = start + 1;
+    }
+  }
+
+  while (start > 0 && !isBoundary(text[start - 1])) {
+    start--;
+  }
+
+  while (end < text.length && !isBoundary(text[end])) {
+    end++;
+  }
+
+  const length = end - start;
+  return { index: start, length: length > 0 ? length : 0 };
+}
+
 export const editorTool = tool(
   async ({ instruction, selection, documentText, docId }: z.infer<typeof editorSchema>) => {
+    let activeSelection = { ...selection };
+
     // Check for formatting operations that require text selection
     const formattingKeywords = ['bold', 'italic', 'underline', 'color', 'blue', 'red', 'green', 'highlight', 'heading', 'align', 'bigger', 'smaller', 'link'];
     const isFormatting = formattingKeywords.some(keyword => instruction.toLowerCase().includes(keyword));
     
-    // If it's a formatting operation but nothing is selected, return error
-    if (isFormatting && selection.length === 0) {
-      return JSON.stringify({
-        status: "error",
-        message: "Please select the text you want to format first. Highlight the text in the editor, then try your formatting command again."
-      });
+    // If it's a formatting operation but nothing is selected, try to expand to the word under the cursor
+    if (isFormatting && activeSelection.length === 0) {
+      const expanded = getWordRangeAt(documentText, activeSelection.index);
+      if (expanded.length > 0) {
+        activeSelection = expanded;
+        console.log(`[EditorTool] Expanded empty selection to word range: index ${activeSelection.index}, length ${activeSelection.length} ("${documentText.substring(activeSelection.index, activeSelection.index + activeSelection.length)}")`);
+      } else {
+        return JSON.stringify({
+          status: "error",
+          message: "Please place your cursor on a word or highlight the text you want to format first."
+        });
+      }
     }
     
     // 1️⃣ Generate delta using LLM
@@ -96,11 +139,11 @@ Document Text:
 ${documentText || "(empty document)"}
 
 Selected Text (what user wants to format):
-${selection.length > 0 ? documentText.substring(selection.index, selection.index + selection.length) : "(no selection - will insert new content)"}
+${activeSelection.length > 0 ? documentText.substring(activeSelection.index, activeSelection.index + activeSelection.length) : "(no selection - will insert new content)"}
 
 Cursor/Selection:
-- Index: ${selection.index}
-- Length: ${selection.length} (0=insert new content, >0=format/replace selected text)
+- Index: ${activeSelection.index}
+- Length: ${activeSelection.length} (0=insert new content, >0=format/replace selected text)
 
 User Instruction:
 "${instruction}"
@@ -112,8 +155,8 @@ You MUST return ONLY valid JSON in one of these formats:
 FORMAT 1: Apply formatting to selected text (when selection.length > 0):
 {
   "ops": [
-    {"retain": ${selection.index}},
-    {"delete": ${selection.length}},
+    {"retain": ${activeSelection.index}},
+    {"delete": ${activeSelection.length}},
     {"insert": "selected text content", "attributes": {"bold": true}}
   ]
 }
@@ -121,7 +164,7 @@ FORMAT 1: Apply formatting to selected text (when selection.length > 0):
 FORMAT 2: Insert new content (when selection.length = 0):
 {
   "ops": [
-    {"retain": ${selection.index}},
+    {"retain": ${activeSelection.index}},
     {"insert": "new content here"}
   ]
 }
@@ -129,8 +172,8 @@ FORMAT 2: Insert new content (when selection.length = 0):
 FORMAT 3: For bullet/numbered lists from selected text:
 {
   "ops": [
-    {"retain": ${selection.index}},
-    {"delete": ${selection.length}},
+    {"retain": ${activeSelection.index}},
+    {"delete": ${activeSelection.length}},
     {"insert": "Point 1\\nPoint 2\\nPoint 3\\n", "attributes": {"list": "bullet"}}
   ]
 }
@@ -174,8 +217,8 @@ Example 3 - Insert new content (selection.length=0):
 
 NOW GENERATE THE DELTA FOR THIS REQUEST:
 User wants: "${instruction}"
-Selection length: ${selection.length}
-${selection.length > 0 ? `Selected text: "${documentText.substring(selection.index, selection.index + selection.length)}"` : 'No selection - inserting new content'}
+Selection length: ${activeSelection.length}
+${activeSelection.length > 0 ? `Selected text: "${documentText.substring(activeSelection.index, activeSelection.index + activeSelection.length)}"` : 'No selection - inserting new content'}
 
 Return ONLY the JSON delta object, no other text.
     `);
@@ -215,7 +258,7 @@ Return ONLY the JSON delta object, no other text.
       type: "EDITOR_APPROVAL",
       delta,
       instruction,
-      selection
+      selection: activeSelection
     });
 
     // 🔥 EXECUTION RESUMES FROM HERE AFTER HUMAN DECISION 🔥
