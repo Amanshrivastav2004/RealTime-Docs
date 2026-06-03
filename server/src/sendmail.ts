@@ -1,21 +1,4 @@
-
-
-import nodemailer from 'nodemailer';
-
-let transporter: nodemailer.Transporter | null = null;
-
-const getTransporter = () => {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-  }
-  return transporter;
-};
+import axios from 'axios';
 
 export interface MailData {
   from: string;
@@ -27,10 +10,26 @@ export interface MailData {
 
 export const SendMail = async (mailData: MailData) => {
   try {
-    const activeTransporter = getTransporter();
-    const response = await activeTransporter.sendMail(mailData);
-    return response;
-  } catch (error) {
+    const response = await axios.post(
+      'https://api.resend.com/emails',
+      {
+        from: 'onboarding@resend.dev',
+        to: [mailData.to],
+        subject: mailData.subject,
+        html: mailData.html || `<p>${mailData.text}</p>`,
+        text: mailData.text,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    console.log('[SendMail] Email sent successfully via Resend:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('[SendMail] Error sending email via Resend:', error?.response?.data || error.message);
     throw error;
   }
 };
